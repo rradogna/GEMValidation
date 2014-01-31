@@ -50,31 +50,16 @@ if __name__ == "__main__":
   if not treeEvents:
     sys.exit('Tree %s does not exist.' %(treeEvents))
 
-
   Nentries = treeEvents.GetEntriesFast()
-  print Nentries
-  file.Close()
-  
-  file = TFile.Open(inputFile)
-  if not file:
-    sys.exit('Input ROOT file %s is missing.' %(inputFile))
-
-  dirAna = file.Get(analyzer)
-  if not dirAna:
-    sys.exit('Directory %s does not exist.' %(dirAna))
   
   treeHits = dirAna.Get(recHitsNoise)
   if not treeHits:
     sys.exit('Tree %s does not exist.' %(treeHits))
-  print Nentries
 
   fileOut = TFile.Open(outputFile, "RECREATE")  
 #-------------------------------------------------------------------------------------------------------------------------------------#
-  #gStyle.SetStatStyle(0)
-  #gStyle.SetOptStat(1110)
   c = TCanvas("c","c",800,800)
   c.Clear()
-
      
   h1 = TH1F("h1", "GEM RecHit noise rate per roll number,station1;roll number;rate [Hz/cm^{-2}]",13,0.,13.)
   h2 = TH1F("h2", "GEM RecHit noise rate per roll number,station2;roll number;rate [Hz/cm^{-2}]",13,0.,13.)
@@ -88,13 +73,9 @@ if __name__ == "__main__":
         break
     
       treeHits.GetEntry(jentry) 
-      #print treeHits.roll
       area_roll = treeHits.trArea
       scale = 1/(area_roll*bx_times_25ns*nchambers_ge11*Nentries)
-      #print area_roll
-      #print "area ", area_roll,  "scale", scale
       if treeHits.station==1:
-        #h1.Fill(treeHits.roll, treeHits.trArea*bx_times_25ns*nchambers_ge11/Nentries) 
 	h1.Fill(treeHits.roll, 1/(area_roll*bx_times_25ns*nchambers_ge11*Nentries)) 
       if treeHits.station==2:
         h2.Fill(treeHits.roll, 1/(area_roll*bx_times_25ns*nchambers_ge21*Nentries))
@@ -103,14 +84,12 @@ if __name__ == "__main__":
       if (jentry+1) % 30000 == 0: 
             sys.stdout.write("."); sys.stdout.flush()
   print " done."
-    #his.SetBinContent(1, h.GetBinContent(1)*2)
 
   h1.SetTitle("GEM RecHit noise rate per roll number,station1;roll number;rate [Hz/cm^{-2}]")
   h1.SetStats(0)
   h1.SetLineWidth(2)
   h1.SetLineColor(kBlue)
   h1.Draw("HIST TEXT")
-  #his.SetMinimum(0.)
   c.SaveAs(targetDir + "noise_rate_s1" + ext)
   h2.SetTitle("GEM RecHit noise rate per roll number,station2;roll number;rate [Hz/cm^{-2}]")
   h2.SetStats(0)
@@ -124,7 +103,9 @@ if __name__ == "__main__":
   h3.SetLineColor(kBlue)
   h3.Draw("HIST TEXT")
   c.SaveAs(targetDir + "noise_rate_s3" + ext)  
+#-------------------------------------------------------------------------------------------------------------------------------------#
   
+  print "Making other plots for noise "
   draw_1D(targetDir, "occupancy_per_roll_s1", ext, treeHits, "GEM RecHit occupancy per roll number,station1;roll number;entries", 
   	 "h_", "(14,-0.5,13.5)", "roll", TCut("station==1"), "HIST TEXT")
   draw_1D(targetDir, "occupancy_per_roll_s2", ext, treeHits, "GEM RecHit occupancy per roll number,station2;roll number;entries",
